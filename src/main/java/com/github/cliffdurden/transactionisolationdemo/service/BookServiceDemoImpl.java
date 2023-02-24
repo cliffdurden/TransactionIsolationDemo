@@ -95,12 +95,9 @@ public class BookServiceDemoImpl {
     @SneakyThrows
     @Transactional
     public void updateRatingT2(Long id, Integer rating) {
-        log.info("{}, T2 started.", threadName());
         var book = repository.findById(id).orElseThrow();
-        log.info("{}, T2 selected from db... ", threadName());
         book.setRating(rating);
-        log.info("{}, T2 save to db... ", threadName());
-        repository.save(book);
+        save(book);
     }
 
     @SneakyThrows
@@ -113,37 +110,29 @@ public class BookServiceDemoImpl {
     @SneakyThrows
     @Transactional
     public void addBooksT2(Book... newBooks) {
-        log.info("{}, T2 started.", threadName());
-        log.info("{}, T2 save to db... ", threadName());
         repository.saveAll(Arrays.asList(newBooks));
     }
 
     private Book dirtyRead(CountDownLatch latch, CountDownLatch latchT1aux, Long id) throws InterruptedException {
-        log.info("{}, T1 started.", threadName());
         latchT1aux.countDown();
         latch.await(); // waiting until another transaction will have made changes
-        log.info("{}, T1 select from db... ", threadName());
         return repository.findById(id).orElseThrow();
     }
 
     private List<Book> phantomRead(CountDownLatch latch, CountDownLatch latchT1Aux) throws InterruptedException {
-        log.info("{}, T1 started.", threadName());
         var booksInTheBeginningOfTransaction = repository.findAll();
-        log.debug("{}, T1 book in the beginning. value: {}", threadName(), booksInTheBeginningOfTransaction);
+        log.debug("T1 book in the beginning. value: {}", booksInTheBeginningOfTransaction);
         latchT1Aux.countDown();
         latch.await(); // waiting until another transaction has been finished
-        log.info("{}, T1 select from db... ", threadName());
         return repository.findAll();
     }
 
     private Book nonRepeatableRead(CountDownLatch latch, CountDownLatch latchT1Aux, Long id) throws InterruptedException {
-        log.info("{}, T1 started.", threadName());
         val bookInTheBeginningOfTransaction = repository.findById(id).orElseThrow();
-        log.info("{}, T1 book in the beginning. value: {}", threadName(), bookInTheBeginningOfTransaction);
-        entityManager.clear();
+        log.info("T1 book in the beginning. value: {}", bookInTheBeginningOfTransaction);
+        entityManager.detach(bookInTheBeginningOfTransaction);
         latchT1Aux.countDown();
         latch.await(); // waiting until another transaction has been finished
-        log.info("{}, T1 select from db... ", threadName());
         return repository.findById(id).orElseThrow();
     }
 
@@ -154,9 +143,4 @@ public class BookServiceDemoImpl {
     public void deleteAll() {
         repository.deleteAll();
     }
-
-    private String threadName() {
-        return Thread.currentThread().getName();
-    }
-
 }

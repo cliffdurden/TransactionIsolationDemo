@@ -17,9 +17,10 @@ spring:
 logging:
   level:
     root: info
-    org.testcontainers: info
     com.github.dockerjava: info
     org.hibernate.type: trace
     #org.hibernate.SQL: debug
     org.hibernate.orm.jdbc.bind: trace
+    org.springframework.transaction: trace
+    org.springframework.orm.jpa: info
 

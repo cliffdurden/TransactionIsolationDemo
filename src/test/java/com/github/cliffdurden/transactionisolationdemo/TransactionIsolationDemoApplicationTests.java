@@ -23,8 +23,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 class TransactionIsolationDemoApplicationTests {
 
     @Container
-    static PostgreSQLContainer<?> db = new PostgreSQLContainer<>("postgres:15.2")
-            .withLogConsumer(new Slf4jLogConsumer(log));
+    static PostgreSQLContainer<?> db = new PostgreSQLContainer<>("postgres:15.2");
 
     @Autowired
     private BookServiceDemoImpl testSubject;
@@ -67,7 +66,7 @@ class TransactionIsolationDemoApplicationTests {
         val result = future1.get();
         latchT2.countDown();
 
-        assertEquals(book1.getRating(), result.getRating(), "Rating should the same as before transaction");
+        assertEquals(book1.getRating(), result.getRating(), "Rating should the same as before the transaction");
     }
 
     @DisplayName("[Isolation.READ_COMMITTED / Dirty read] shouldn't read non-committed changes.")
@@ -89,7 +88,7 @@ class TransactionIsolationDemoApplicationTests {
         val result = future1.get();
         latchT2.countDown();
 
-        assertEquals(book1.getRating(), result.getRating(), "Rating should the same as before transaction");
+        assertEquals(book1.getRating(), result.getRating(), "Rating should the same as before the transaction");
     }
 
     @DisplayName("[Isolation.REPEATABLE_READ / Dirty read] shouldn't read non-committed changes.")
@@ -111,7 +110,7 @@ class TransactionIsolationDemoApplicationTests {
         val result = future1.get();
         latchT2.countDown();
 
-        assertEquals(book1.getRating(), result.getRating(), "Rating should the same as before transaction");
+        assertEquals(book1.getRating(), result.getRating(), "Rating should the same as before the transaction");
     }
 
     @DisplayName("[Isolation.SERIALIZABLE / Dirty read] shouldn't read non-committed changes. Isolation.SERIALIZABLE")
@@ -133,7 +132,7 @@ class TransactionIsolationDemoApplicationTests {
         val result = future1.get();
         latchT2.countDown();
 
-        assertEquals(book1.getRating(), result.getRating(), "Rating should the same as before transaction");
+        assertEquals(book1.getRating(), result.getRating(), "Rating should the same as before the transaction");
     }
 
     @DisplayName("[Isolation.READ_UNCOMMITTED / Non-repeatable read] should read committed changes has been made by another transaction.")
@@ -153,7 +152,7 @@ class TransactionIsolationDemoApplicationTests {
                 .thenAccept((__) -> latch.countDown());
         val result = future1.get();
 
-        assertEquals(newRating, result.getRating(), "Rating should be from committed transaction");
+        assertEquals(newRating, result.getRating(), "Rating should be from the committed transaction");
     }
 
     @DisplayName("[Isolation.READ_COMMITTED / Non-repeatable read] should read committed changes has been made by another transaction.")
@@ -173,14 +172,14 @@ class TransactionIsolationDemoApplicationTests {
                 .thenAccept((__) -> latch.countDown());
         val result = future1.get();
 
-        assertEquals(newRating, result.getRating(), "Rating should be from committed transaction");
+        assertEquals(newRating, result.getRating(), "Rating should be from the committed transaction");
     }
 
     @DisplayName("[Isolation.REPEATABLE_READ / Non-repeatable read] shouldn't read committed changes has been made by another transaction.")
     @Test
     @SneakyThrows
     void testNonRepeatableReadWhenIsolationLevelIsRepeatableRead() {
-        final var expectedRating = 10;
+        final var newRating = 10;
         CountDownLatch latchT1 = new CountDownLatch(1);
         CountDownLatch latchT1Aux = new CountDownLatch(1);
 
@@ -189,18 +188,18 @@ class TransactionIsolationDemoApplicationTests {
         );
         latchT1Aux.await(); // wait until T1 has been started
         runAsync(() -> testSubject
-                .updateRatingT2(book1.getId(), expectedRating))
+                .updateRatingT2(book1.getId(), newRating))
                 .thenAccept((__) -> latchT1.countDown());
         val result = future1.get();
 
-        assertEquals(book1.getRating(), result.getRating(), "Rating should be from committed transaction");
+        assertEquals(book1.getRating(), result.getRating(), "Rating should the same as before the transaction");
     }
 
     @DisplayName("[Isolation.Isolation.SERIALIZABLE / Non-repeatable read] shouldn't read committed changes has been made by another transaction.")
     @Test
     @SneakyThrows
     void testNonRepeatableReadWhenIsolationLevelIsSerializable() {
-        final var expectedRating = 10;
+        final var newRating = 10;
         CountDownLatch latchT1 = new CountDownLatch(1);
         CountDownLatch latchT1Aux = new CountDownLatch(1);
 
@@ -209,11 +208,11 @@ class TransactionIsolationDemoApplicationTests {
         );
         latchT1Aux.await(); // wait until T1 has been started
         runAsync(() -> testSubject
-                .updateRatingT2(book1.getId(), expectedRating))
+                .updateRatingT2(book1.getId(), newRating))
                 .thenAccept((__) -> latchT1.countDown());
         val result = future1.get();
 
-        assertEquals(book1.getRating(), result.getRating(), "Rating should be from committed transaction");
+        assertEquals(book1.getRating(), result.getRating(), "Rating should the same as before the transaction");
     }
 
     @DisplayName("[Isolation.READ_UNCOMMITTED / Phantom read] should read rows has been inserted by another transaction.")
@@ -234,7 +233,7 @@ class TransactionIsolationDemoApplicationTests {
                 .thenAccept((__) -> latchT1.countDown());
         val result = future1.get();
 
-        assertEquals(3, result.size(), "Count should has taken into consideration insertion from another transaction");
+        assertEquals(3, result.size(), "Count should has been affected by another transaction");
     }
 
     @DisplayName("[Isolation.READ_COMMITTED / Phantom read] should read rows has been inserted by another transaction.")
@@ -255,7 +254,7 @@ class TransactionIsolationDemoApplicationTests {
                 .thenAccept((__) -> latchT1.countDown());
         val result = future1.get();
 
-        assertEquals(3, result.size(), "Count should has taken into consideration insertion from another transaction");
+        assertEquals(3, result.size(), "Count should has been affected by another transaction");
     }
 
     @DisplayName("[Isolation.REPEATABLE_READ / Phantom read] shouldn't read rows has been inserted by another transaction. (Allowed, but not in PG)")
@@ -275,7 +274,7 @@ class TransactionIsolationDemoApplicationTests {
         latchT1.countDown();
         val result = future1.get();
 
-        assertEquals(1, result.size(), "Count should has taken into consideration insertion from another transaction");
+        assertEquals(1, result.size(), "Count should has not been affected by another transaction");
     }
 
     @DisplayName("[Isolation.SERIALIZABLE / Phantom read] shouldn't read rows has been inserted by another transaction.")
@@ -294,7 +293,7 @@ class TransactionIsolationDemoApplicationTests {
                 .thenAccept((__) -> latchT1.countDown());
         val result = future1.get();
 
-        assertEquals(1, result.size(), "Another transaction shouldn't affect the result count");
+        assertEquals(1, result.size(), "Count should has not been affected by another transaction");
     }
 
     private Book book1() {
