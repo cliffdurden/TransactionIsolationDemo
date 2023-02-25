@@ -2,7 +2,7 @@ package com.github.cliffdurden.transactionisolationdemo.service;
 
 import com.github.cliffdurden.transactionisolationdemo.entity.Book;
 import com.github.cliffdurden.transactionisolationdemo.repository.BookRepository;
-import jakarta.persistence.EntityManager;
+import jakarta.persistence.*;
 import lombok.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -18,6 +18,7 @@ public class BookServiceDemoImpl {
 
     private final BookRepository repository;
 
+    @PersistenceContext
     private final EntityManager entityManager;
 
     @SneakyThrows
